@@ -74,17 +74,39 @@ What data will you use to train your model? What input data is needed during ser
 
 ### 5.3. Techniques
 
-What machine learning techniques will you use? How will you clean and prepare the data (e.g., excluding outliers) and create features?
+**Machine Learning technique**
+- For the email classification we will start witt the BERT architecture, but distill one (https://huggingface.co/distilbert/distilbert-base-german-cased)
+
+**Preprocessing**
+- Deletion of the greetings, signatures and footers of the email.
+- Anonymization of the personal data.
+- Replacing dates, numbers, urls by the coressponding universal tokens (<DATE>, <NUMBER>, <URL>)
+- Deletion all non-ascii characters except german umlauts.
+- Tokinization of the text into the integer tokens.
+
 
 ### 5.4. Experimentation & Validation
 
-How will you validate your approach offline? What offline evaluation metrics will you use?
+**Dataset Strategy**
 
-If you're A/B testing, how will you assign treatment and control (e.g., customer vs. session-based) and what metrics will you measure? What are the success and [guardrail](https://medium.com/airbnb-engineering/designing-experimentation-guardrails-ed6a976ec669) metrics?
+The whole dataset will be splitted into the 3 parts:
+- Training dataset: will be used for the model training.
+- Validation dataset: will be used for the hyperparameter tuning.
+- Test dataset: will be used for the final prediction result estimation.
+
+During the dataset split we will use stratified approach: each dataset contains approximately the same percentage of samples of each target class as the complete set. This will help us to maintain representativeness of among all 3 datasets.
+
+**Technical Metric**
+In our case prediction all 10 categories are equally important. That's why we will use f1-score macro average: calculate metrics for each label, and find their unweighted mean. 
+
+**Additional Remarks**
+The data among 10 categories are imbalanced (the biggest category contains 470k records, the smallest 7k records) which may lead ml model to become more biased towards the majority class. There is a big debate in ML and Statistical analysis community regarding Resampling like SMOTE (https://stats.stackexchange.com/questions/321970/imbalanced-data-smote-and-feature-selection), so for now we will use existing dataset without artificially generation of the new samples.
+
+There is a modern-day approach of using LLMs for the email generation, but it's still questionable if we should use it for our task, because it will change the training distribution of the data (approximation of the real world emails distribution). That could lead to unknown consequences. This approach must be studied additionally in depth.
 
 ### 5.5. Human-in-the-loop
 
-How will you incorporate human intervention into your ML system (e.g., product/customer exclusion lists)?
+All prediction, with the confidence lower than 90% will be additionally checked by the trained specialist.
 
 ## 6. Implementation
 
