@@ -5,6 +5,19 @@
 
 A summary of the doc's purpose, problem, solution, and desired outcome, usually in 3-5 sentences.
 
+**Problem**: Telecomunication Company X recieves approximately 5k emails per day from their clients about different topics. The current solution of the classification of these emails is to outsource this task to the company Y, which manually classifies emails into 10 categories (Categories are specified  by the business department of the company X). There are 3 main problem in this solution:
+
+- It is expensive: company X must pay $$$ amount of money to the company Y
+- Classification is slow: people are quite slow in the task like classification of the email, so it can take a week of time what could be done in an hour by algorithm/machine.
+- Classification quality: people can deliver suboptimal results in text classification (especially compared to classification of images) due to the lack of concentration or not knowing specifics of the telecommunication business.
+
+**Solution**: replacement of the manually classification of the emails my ML algorithm
+
+**Desired outcome**: iterative progress due to the contract with company Y.
+- First go live/deployment of the classifier must replace 20% of the manually classified emails.
+- Second deployment of the classifier (in half a year) must replace 40% of the manually classified emails.
+- Final goal: to replace 75% of the manually classified emails.
+
 ## 2. Motivation
 Why the problem is important to solve, and why now.
 
