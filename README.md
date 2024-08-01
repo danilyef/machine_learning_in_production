@@ -3,8 +3,6 @@
 ---
 ## 1. Overview
 
-A summary of the doc's purpose, problem, solution, and desired outcome, usually in 3-5 sentences.
-
 **Problem**: Telecomunication Company X recieves approximately 5k emails per day from their clients about different topics. The current solution of the classification of these emails is to outsource this task to the company Y, which manually classifies emails into 10 categories (Categories are specified  by the business department of the company X). There are 3 main problem in this solution:
 
 - It is expensive: company X must pay $$$ amount of money to the company Y
@@ -19,7 +17,16 @@ A summary of the doc's purpose, problem, solution, and desired outcome, usually 
 - Final goal: to replace 75% of the manually classified emails.
 
 ## 2. Motivation
-Why the problem is important to solve, and why now.
+
+**Benifits of the Solution**
+- Reducing dependancy from the outsource company: we will be in charge of the classification process and its improvement.
+- Cuting expanses: infracstructure set up will bee much cheaper than paying $$$ amount of money to the external party.
+- Improving classification quality: ML algorithms are more robust in email classification than human beings.
+- Improving classification speed: ML algorithms are much faster in email classification than human beings.
+
+**Urgency and Impact**
+- Due to the difficult economical situation in the world, it's improtant to act now in order to cut expanses and dependencies from the outsource companies.
+- Reduction the gap between technological status of the company and state-of-the-art approaches will benefit company X right now and in the future.
 
 ## 3. Success metrics
 Usually framed as business goals, such as increased customer engagement (e.g., CTR, DAU), revenue, or reduced cost.
