@@ -14,7 +14,7 @@
 **Desired outcome**: iterative progress due to the contract with company Y.
 - First go live/deployment of the classifier must replace 20% of the manually classified emails.
 - Second deployment of the classifier (in half a year) must replace 40% of the manually classified emails.
-- Final goal: to replace 75% of the manually classified emails.
+- Final goal: to replace 70% of the manually classified emails.
 
 ## 2. Motivation
 
@@ -29,7 +29,7 @@
 - Reduction the gap between technological status of the company and state-of-the-art approaches will benefit company X right now and in the future.
 
 ## 3. Success metrics
-Usually framed as business goals, such as increased customer engagement (e.g., CTR, DAU), revenue, or reduced cost.
+- Cost reduction: saving 300000 euro per year (according to the estimation of the business department of the company X)
 
 ## 4. Requirements & Constraints
 Functional requirements are those that should be met to ship the project. They should be described in terms of the customer perspective and benefit. (See [this](https://eugeneyan.com/writing/ml-design-docs/#the-why-and-what-of-design-docs) for more details.)
@@ -38,18 +38,39 @@ Non-functional/technical requirements are those that define system quality and h
 
 Constraints can come in the form of non-functional requirements (e.g., cost below $`x` a month, p99 latency < `y`ms)
 
+**Functional requirements:**
+- In the first iteration 20% of the incomming emails per year have prediction confidence 90% or more.
+- Final requirement: 70% of the incoming emails per year have prediction confidence 90% or more.
+- Extraction of the client number id from the email, if provided.
+- Extraction of the client number phone number, if provided
+  
+**Technical requirements**
+- Personal data of the clients (name, surname, email adress etc.) must be anonymized.
+- Latency: 5 seconds per request.
+- Open Source only.
+
 ### 4.1 What's in-scope & out-of-scope?
-Some problems are too big to solve all at once. Be clear about what's out of scope.
+
+**In-scope**
+- Analysis of the client emails, which have .eml format
+
+**Out-of-scope**
+- Additional analysis of attached files like pdf, jpg, which can help in the prediction of the email. Will be implemented in the future version.
 
 ## 5. Methodology
 
 ### 5.1. Problem statement
 
-How will you frame the problem? For example, fraud detection can be framed as an unsupervised (outlier detection, graph cluster) or supervised problem (e.g., classification).
+This is a classical supervised classification problem, where subject combined with text of the email is an input label (transformed into integer tokens) and category number is an output label (from 1 to 10) 
 
 ### 5.2. Data
 
 What data will you use to train your model? What input data is needed during serving?
+**Training data**:
+- Labeled emails by the outsource company Y.
+
+**Input data**
+- Client emails in the .eml format. 
 
 ### 5.3. Techniques
 
