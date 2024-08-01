@@ -118,7 +118,7 @@ Start by providing a big-picture view. [System-context diagrams](https://en.wiki
 
 ### 6.2. Infra
 
-How will you host your system? On-premise, cloud, or hybrid? This will define the rest of this section
+Service will be hosted on premise.
 
 ### 6.3. Performance (Throughput, Latency)
 
@@ -128,13 +128,20 @@ How will your system meet the throughput and latency requirements? Will it scale
 
 How will your system/application authenticate users and incoming requests? If it's publicly accessible, will it be behind a firewall?
 
+
 ### 6.5. Data privacy
 
-How will you ensure the privacy of customer data? Will your system be compliant with data retention and deletion policies (e.g., [GDPR](https://gdpr.eu/what-is-gdpr/))?
+Sensetive data will be masked by special tokens (Example: Khreschatyk 1, Kyiv will be marked as <LOCATION>) by the Neural Network (https://huggingface.co/flair/ner-german), spacy NER recognitions (english and german) and regex.
 
 ### 6.6. Monitoring & Alarms
 
 How will you log events in your system? What metrics will you monitor and how? Will you have alarms if a metric breaches a threshold or something else goes wrong?
+
+- **Event logs**: Every classified record will be saved into the oracle database.
+- **Monitoring**: Docker health check will be implemented for each container. If one of the containers will fail, notification will be send to the developer group. Grafana for monitoring
+- 
+
+
 
 ### 6.7. Cost
 How much will it cost to build and operate your system? Share estimated monthly costs (e.g., EC2 instances, Lambda, etc.)
@@ -145,7 +152,8 @@ How will your system integrate with upstream data and downstream users?
 
 ### 6.9. Risks & Uncertainties
 
-Risks are the known unknowns; uncertainties are the unknown unknows. What worries you and you would like others to review?
+- Not all sensetive data might be covered.
+- Cleints (id) could be wrong identified or not identidied at all.
 
 ## 7. Appendix
 
