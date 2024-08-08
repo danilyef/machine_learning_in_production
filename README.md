@@ -108,8 +108,26 @@ All prediction, with the confidence lower than 90% will be additionally checked 
 
 ### 6.1. High-level design
 
-![](https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Data-flow-diagram-example.svg/1280px-Data-flow-diagram-example.svg.png)
+```mermaid
+graph TD;
+    A[External System] -->|Sends .eml file| B[Text Preprocessing];
+    B -->|Preprocessed text| C[ML Model];
+    C -->|Classification results| D[Web App];
+    D -->|JSON Response| E[External System];
 
+    subgraph Docker Containers
+        B
+        C
+        D
+    end
+
+    D --> F{JSON Fields};
+    F --> G[Predicted Category];
+    F --> H[Probability of Predicted Category];
+    F --> I[Client ID];
+    F --> J[Client Phone Number];
+
+```
 
 
 ### 6.2. Infra
