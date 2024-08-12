@@ -1,0 +1,12 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job
+spec:
+  parallelism: 2
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - image: yf19001/python-server:latest
+          name: job
