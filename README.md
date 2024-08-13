@@ -5,13 +5,15 @@
 
 **Problem**: Telecomunication Company X recieves approximately 5k emails per day from their clients about different topics. The current solution of the classification of these emails is to outsource this task to the company Y, which manually classifies emails into 9 categories (Categories are specified  by the business department of the company X). There are 3 main problem in this solution:
 
-- It is expensive: company X must pay $$$ amount of money to the company Y.
+- It is expensive: company X must pay 300000 Euro per year amount of money to the company Y.
 - Classification is slow: people are quite slow in the task like classification of the email, so it can take a week of time what could be done in an hour by algorithm/machine.
-- Classification quality: people can deliver suboptimal results in text classification (especially compared to classification of images) due to the lack of concentration or not knowing specifics of the telecommunication business.
-
+- Classification quality: deep learning models can outperform Humans in text analysis (https://huggingface.co/blog/bert-101#4-berts-performance-on-common-language-tasks : section 4.1 and section 4.2) 
 **Solution**: replacement of the manually classification of the emails my ML algorithm.
 
 **Desired outcome**: iterative progress due to the contract with company Y.
+
+Due to the contract agreement with company Y, we can substitute only 20% of the emails stream at the first go live/deployment. Don't ask why (I don't know myself :)), but it is the real case at work. 
+
 - First go live/deployment of the classifier must replace 20% of the manually classified emails.
 - Second deployment of the classifier (in half a year) must replace 40% of the manually classified emails.
 - Final goal: to replace at least 70% of the manually classified emails.
@@ -74,11 +76,11 @@ This is a classical supervised classification problem, where subject combined wi
 - For the email classification we will start witt the BERT architecture, but distill one (https://huggingface.co/distilbert/distilbert-base-german-cased)
 
 **Preprocessing**
-- Deletion of the greetings, signatures and footers of the email.
-- Anonymization of the personal data.
-- Replacing dates, numbers, urls by the coressponding universal tokens (<DATE>, <NUMBER>, <URL>)
+- Deletion of the greetings, signatures and footers of the email: at the first step saving all common greetings and signatures in txt file and use it for regular expression logic. The next step will be to train NER network (https://huggingface.co/flair/ner-german).
+- Anonymization of the personal data by using NER network (https://huggingface.co/flair/ner-german).
+- Replacing dates, numbers, urls by the coressponding universal tokens (<DATE>, <NUMBER>, <URL>): regex will be deployed.
 - Deletion all non-ascii characters except german umlauts.
-- Tokinization of the text into the integer tokens.
+- Tokinization of the text into the integer tokens: we need to transform text word/tokens into integers, because neural network doesn't work directly with text, but uses integer tokens as an input into the model.
 
 
 ### 5.4. Experimentation & Validation
@@ -134,12 +136,12 @@ graph TD;
 - Service will be hosted on premise.
 - CPU only.
 - **Technology**: 3 Docker Containers (ML Prediction, Text Cleaning, Web App) combined together by docker-compose yaml file.
-- **Storage**: Jfrog Artifactory.
+- **Registry**: Jfrog Artifactory.
 
 ### 6.3. Performance (Throughput, Latency)
 
 How will your system meet the throughput and latency requirements? Will it scale vertically or horizontally?
-- **Throughput**: Staheholders requirement is to process 1 email at time (bo batch processing).
+- **Throughput**: Staheholders requirement is to process 1 email at time (no batch processing).
 - **Latency:** there is no hard requirements, it should be reasonable (5 seconds per email).
 - **Scaling:** if needed, we will start with vertical scaling.
 
