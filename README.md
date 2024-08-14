@@ -3,7 +3,7 @@
 ---
 ## 1. Overview
 
-**Problem**: Telecomunication Company X recieves approximately 5k emails per day from their clients about different topics. The current solution of the classification of these emails is to outsource this task to the company Y, which manually classifies emails into 9 categories (Categories are specified  by the business department of the company X). There are 3 main problem in this solution:
+**Problem**: Historical data of the Telecomunication Company X shows, that in a span of 5 years Company X recieves approximately 5k emails per day on average from their clients about different topics. The current solution of the classification of these emails is to outsource this task to the company Y, which manually classifies emails into 9 categories (Categories are specified  by the business department of the company X). There are 3 main problem in this solution:
 
 - It is expensive: company X must pay 300000 Euro per year amount of money to the company Y.
 - Classification is slow: people are quite slow in the task like classification of the email, so it can take a week of time what could be done in an hour by algorithm/machine.
@@ -12,7 +12,7 @@
 
 **Desired outcome**: iterative progress due to the contract with company Y.
 
-Due to the contract agreement with company Y, we can substitute only 20% of the emails stream at the first go live/deployment. Don't ask why (I don't know myself :)), but it is the real case at work. 
+Due to the contract agreement with company Y, we can substitute only 20% of the emails stream at the first go live/deployment.
 
 - First go live/deployment of the classifier must replace 20% of the manually classified emails.
 - Second deployment of the classifier (in half a year) must replace 40% of the manually classified emails.
@@ -21,8 +21,8 @@ Due to the contract agreement with company Y, we can substitute only 20% of the 
 ## 2. Motivation
 
 **Benifits of the Solution**
-- Reducing dependancy from the outsource company: we will be in charge of the classification process and its improvement.
-- Cuting expanses: infracstructure set up will bee much cheaper than paying $$$ amount of money to the external party.
+- Reducing dependency from the outsource company: we will be in charge of the classification process and its improvement.
+- Cuting expanses: infracstructure set up will bee much cheaper than paying 300000 Euro per year to the external party.
 - Improving classification quality: ML algorithms are more robust in email classification than human beings.
 - Improving classification speed: ML algorithms are much faster in email classification than human beings.
 
@@ -31,12 +31,12 @@ Due to the contract agreement with company Y, we can substitute only 20% of the 
 - Reduction the gap between technological status of the company and state-of-the-art approaches will benefit company X right now and in the future.
 
 ## 3. Success metrics
-- Cost reduction: saving 300000 euro per year (according to the estimation of the business department of the company X).
+- Cost reduction: saving 300000 euro per year (Cost estimation: cost per month * 12 = 250000 * 12 = 300000).
 
 ## 4. Requirements & Constraints
 
 **Functional requirements:**
-- In the first iteration 20% of the incomming emails per year have prediction confidence 90% or more.
+- In the first iteration 20% of the incomming emails per year have prediction confidence 90% or more (decided by stakeholders).
 - Final requirement: 70% of the incoming emails per year have prediction confidence 90% or more.
 - Extraction of the client number id from the email, if provided.
 - Extraction of the client number phone number, if provided.
@@ -44,14 +44,14 @@ Due to the contract agreement with company Y, we can substitute only 20% of the 
   
 **Technical requirements**
 - Personal data of the clients (name, surname, email adress etc.) must be anonymized.
-- Latency: 5 seconds per request.
+- Latency: 5 seconds per request (not strict, because the amount of emails is not expected to rise in the nearest future). If necessary, requirements will be more strict. 
 - 1 email at time.
-- Open Source only.
+- Open Source only: because it's free and expenses neeeded to be cut.
 
 ### 4.1 What's in-scope & out-of-scope?
 
 **In-scope**
-- Analysis of the client emails, which have .eml format
+- Analysis of the client emails, which have .eml format.
 
 **Out-of-scope**
 - Additional analysis of attached files like pdf, jpg, which can help in the prediction of the email. Will be implemented in the future version.
@@ -134,7 +134,7 @@ graph TD;
 
 ### 6.2. Infra
 - Service will be hosted on premise.
-- CPU only.
+- CPU only (if neccesary, GPU will be deployed, but it's not desired).
 - **Technology**: 3 Docker Containers (ML Prediction, Text Cleaning, Web App) combined together by docker-compose yaml file.
 - **Registry**: Jfrog Artifactory.
 
@@ -142,13 +142,12 @@ graph TD;
 
 How will your system meet the throughput and latency requirements? Will it scale vertically or horizontally?
 - **Throughput**: Staheholders requirement is to process 1 email at time (no batch processing).
-- **Latency:** there is no hard requirements, it should be reasonable (5 seconds per email).
+- **Latency:** 5 seconds per email or less.  It's not strict, because the amount of emails is not expected to rise in the nearest future. If necessary, rlatency must be reduced. 
 - **Scaling:** if needed, we will start with vertical scaling.
 
 ### 6.4. Security
 
 - We will provide our email classification service as an API, allowing seamless integration. The system responsible for retrieving emails will call this API to classify emails.
-- 
 - Additional Firewall rules.
 
 ### 6.5. Data privacy
@@ -160,13 +159,9 @@ Sensetive data will be masked by special tokens (Example: Khreschatyk 1, Kyiv wi
 - **Event logs**: Every classified record will be saved into the oracle database.
 - **Monitoring**: Docker health check will be implemented for each container. If one of the containers will fail, notification will be send to the developer group. Grafana for monitoring
   
-### 6.7. Integration points
-
-How will your system integrate with upstream data and downstream users?
-
-### 6.8. Risks & Uncertainties
+### 6.7. Risks & Uncertainties
 
 - Not all sensetive data might be covered.
-- Clients (id) could be wrong identified or not identidied at all.
+- Clients (id) could be wrong identified or not identidied at all, hence we cannot assign email to the correct client.
 
 
