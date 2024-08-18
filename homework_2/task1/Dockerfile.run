@@ -1,0 +1,5 @@
+FROM python:3.11-alpine
+
+CMD python -c "import time; time.sleep(2); print(f'ML in Production Course')"
+
+
