@@ -28,5 +28,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./homework_2/task1
+          file: ./homework_2/task1/Dockerfile.web
           push: true
           tags: yf19001/python-server:latest
