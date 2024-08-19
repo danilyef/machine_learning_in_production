@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: server
+spec:
+  containers:
+  - name: python-server
+    image: yf19001/python-server:latest
+    ports:
+    - containerPort: 80
