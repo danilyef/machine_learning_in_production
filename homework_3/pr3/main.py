@@ -38,7 +38,7 @@ def benchmark_save_load(df, file_format, save_func, load_func, file_name):
     df_loaded = load_func(file_name)
     load_time = time.time() - start_time
 
-    # Remove the file after benchmarking
+    # Remove the file
     if os.path.exists(file_name):
         os.remove(file_name)
     
@@ -89,34 +89,34 @@ for fmt, funcs in formats.items():
 
 
 
-# Convert results to DataFrame for easy plotting
+# Convert results to DataFrame
 results_df = pd.DataFrame(results).T
 
-# Plotting the Save and Load times
+# Plotting
 fig, ax = plt.subplots(2, 1, figsize=(10, 8))
 
-# Save Time Plot
+# Save Plot Configs
 ax[0].bar(results_df.index, results_df['Save Time (s)'], color='skyblue')
 ax[0].set_title('Save Time Comparison')
 ax[0].set_ylabel('Time (seconds)')
 ax[0].set_xlabel('File Formats')
 
-# Annotate the bars with the save times
+# Annotate the bars
 for i, v in enumerate(results_df['Save Time (s)']):
     ax[0].text(i, v + 0.01, f"{v:.4f}", ha='center', va='bottom')
 
-# Load Time Plot
+# Load Plot Configs
 ax[1].bar(results_df.index, results_df['Load Time (s)'], color='lightcoral')
 ax[1].set_title('Load Time Comparison')
 ax[1].set_ylabel('Time (seconds)')
 ax[1].set_xlabel('File Formats')
 
-# Annotate the bars with the load times
+# Annotate the bars 
 for i, v in enumerate(results_df['Load Time (s)']):
     ax[1].text(i, v + 0.01, f"{v:.4f}", ha='center', va='bottom')
 
 # Display the plots
 plt.tight_layout()
 
-# Save as jpg
+# Save as file
 fig.savefig('load_and_save_time_comparison.jpg', format='jpg')
