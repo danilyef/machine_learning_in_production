@@ -165,3 +165,25 @@ Sensetive data will be masked by special tokens (Example: Khreschatyk 1, Kyiv wi
 - Clients (id) could be wrong identified or not identidied at all, hence we cannot assign email to the correct client.
 
 
+### 6.8. Data Storage and Processing
+
+**Data Storage:**
+- Raw emails: Stored in a secure, encrypted object storage system MinIO for 30 days.
+- Processed(and anonymized) data: Stored in a relational database (Oracle) for quick access and analysis.
+- Model artifacts: Stored in a version-controlled artifact repository (JFrog Artifactory).
+
+**Data Processing:**
+- Incoming emails are processed in real-time through the pipeline described in the high-level design.
+- Batch processing capabilities will be implemented for reprocessing historical data when needed.
+
+**Data Retention:**
+- Raw emails: 30 days
+- Processed data: 5 years (legal requirements)
+- Classification results: Indefinitely (for long-term analysis and model improvement)
+
+**Data Backup and Recovery:**
+- Regular backups of the database and object storage.
+
+**Data Access:**
+- Production data: read only access for the developers, read/write access for the production team and stakeholders.
+- Development data: read/write access for the developers.
