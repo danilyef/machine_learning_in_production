@@ -25,7 +25,12 @@ data = []
 for _ in range(num_reviews):
     sentiment = random.choice(sentiments)
     review = generate_review(product_name, sentiment)
-    rating = random.randint(1, 5) if sentiment == 'negative' else random.randint(3, 5)
+    if sentiment == 'negative':
+        rating = random.randint(1, 2)
+    elif sentiment == 'neutral':
+        rating = 3
+    else:  # positive
+        rating = random.randint(4, 5)
     data.append({'product': product_name, 'review': review, 'sentiment': sentiment, 'rating': rating})
 
 # Create DataFrame and save to CSV
