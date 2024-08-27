@@ -5,34 +5,43 @@ import random
 # OpenAI API key
 openai.api_key = 'your_api_key_here'
 
-def generate_review(product_name, sentiment):
-    prompt = f"Write a short {sentiment} customer review for the product '{product_name}'."
+def generate_email(category):
+    categories = {
+        'Bussines inquiry': 'Geschäftsanfrage',
+        'Collection request': 'Inkassoanfrage',
+        'Service request': 'Serviceanfrage',
+        'Cancelation': 'Kündigung',
+        'Billing': 'Rechnungsstellung',
+        'Technical issue': 'Technisches Problem',
+        'Payment method': 'Zahlungsmethode',
+        'Documents': 'Dokumente',
+        'Other': 'Sonstiges'
+    }
+    
+    prompt = f"Schreiben Sie eine kurze E-Mail auf Deutsch an ein Telekommunikationsunternehmen X bezüglich einer {categories[category]}. Die E-Mail sollte realistisch sein und typische Kundenanliegen widerspiegeln."
+    
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
-            {"role": "system", "content": "You are a helpful assistant that writes product reviews."},
+            {"role": "system", "content": "Sie sind ein Assistent, der realistische Kunden-E-Mails auf Deutsch verfasst."},
             {"role": "user", "content": prompt}
         ]
     )
     return response.choices[0].message['content'].strip()
 
 # Generate synthetic dataset
-product_name = "Iphone 10"
-sentiments = ['positive', 'negative', 'neutral']
-num_reviews = 100
+categories = [
+    'Bussines inquiry', 'Collection request', 'Service request', 'Cancelation',
+    'Billing', 'Technical issue', 'Payment method', 'Documents', 'Other'
+]
+num_emails = 100
 
 data = []
-for _ in range(num_reviews):
-    sentiment = random.choice(sentiments)
-    review = generate_review(product_name, sentiment)
-    if sentiment == 'negative':
-        rating = random.randint(1, 2)
-    elif sentiment == 'neutral':
-        rating = 3
-    else:  # positive
-        rating = random.randint(4, 5)
-    data.append({'product': product_name, 'review': review, 'sentiment': sentiment, 'rating': rating})
+for _ in range(num_emails):
+    category = random.choice(categories)
+    email_text = generate_email(category)
+    data.append({'category': category, 'email_text': email_text})
 
-# Create DataFrame and save to CSV
+# Create DataFrame and save to Parquet
 df = pd.DataFrame(data)
-df.to_parquet('synthetic_reviews.parquet', index=False)
+df.to_parquet('synthetic_emails.parquet', index=False)
