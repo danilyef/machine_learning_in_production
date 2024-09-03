@@ -16,6 +16,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.datasets import make_regression
 from sklearn.model_selection import train_test_split
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 # Prepare a sample dataset and model for benchmarking
@@ -63,14 +64,27 @@ def multiple_process_inference(model, batches, num_processes=16):
 if __name__ == '__main__':
     model, X_test = create_model_and_data()
 
-    batch_size = 100
-    num_batches = len(X_test) // batch_size + (1 if len(X_test) % batch_size != 0 else 0)
+    batch_sizes = [100, 2000]
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 6))
 
-    data_batches = np.array_split(X_test, num_batches)
+    colors = ['#1f77b4', '#ff7f0e']  
 
-    print(f"Single process inference time: {single_process_inference(model, data_batches)} seconds")
-    print(f"Multiple process inference time: {multiple_process_inference(model, data_batches)} seconds")
+    for i, batch_size in enumerate(batch_sizes):
+        num_batches = len(X_test) // batch_size + (1 if len(X_test) % batch_size != 0 else 0)
+        data_batches = np.array_split(X_test, num_batches)
 
+        single_process_time = single_process_inference(model, data_batches)
+        multiple_process_time = multiple_process_inference(model, data_batches)
 
-# Multiprocessing is faster, when batch_size is small
-# Multiprocessing is slower, when batch_bisze is bigger. 
+        methods = ['Single Process', 'Multiple Processes']
+        times = [single_process_time, multiple_process_time]
+
+        ax = ax1 if i == 0 else ax2
+        ax.bar(methods, times, color=colors)
+        ax.set_title(f'Inference Time Comparison (Batch Size: {batch_size})')
+        ax.set_xlabel('Method')
+        ax.set_ylabel('Time (seconds)')
+
+    plt.tight_layout()
+    plt.savefig('inference_time_comparison.jpg')
+    plt.close(fig)
