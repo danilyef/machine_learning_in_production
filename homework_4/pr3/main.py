@@ -1,9 +1,10 @@
 import openai
 import pandas as pd
 import random
+import os
 
 # OpenAI API key
-openai.api_key = 'your_api_key_here'
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 def generate_email(category):
     categories = {
@@ -29,19 +30,25 @@ def generate_email(category):
     )
     return response.choices[0].message['content'].strip()
 
-# Generate synthetic dataset
-categories = [
-    'Bussines inquiry', 'Collection request', 'Service request', 'Cancelation',
-    'Billing', 'Technical issue', 'Payment method', 'Documents', 'Other'
-]
-num_emails = 100
+def generate_synthetic_dataset(num_emails=100):
+    categories = [
+        'Bussines inquiry', 'Collection request', 'Service request', 'Cancelation',
+        'Billing', 'Technical issue', 'Payment method', 'Documents', 'Other'
+    ]
 
-data = []
-for _ in range(num_emails):
-    category = random.choice(categories)
-    email_text = generate_email(category)
-    data.append({'category': category, 'email_text': email_text})
+    data = []
+    for _ in range(num_emails):
+        category = random.choice(categories)
+        email_text = generate_email(category)
+        data.append({'category': category, 'email_text': email_text})
 
-# Create DataFrame and save to Parquet
-df = pd.DataFrame(data)
-df.to_parquet('synthetic_emails.parquet', index=False)
+    # Create DataFrame and save to Parquet
+    df = pd.DataFrame(data)
+    df.to_parquet('synthetic_emails.parquet', index=False)
+
+    return df
+
+
+if __name__ == "__main__":
+    df = generate_synthetic_dataset()
+    print(df.head())
