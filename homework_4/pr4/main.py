@@ -31,11 +31,13 @@ def main():
     label_issues_idx = label_issues[label_issues["is_label_issue"] == True].index.to_numpy()
     label_issues_df = df.iloc[label_issues_idx]
     label_issues_df.to_csv('label_issues.csv', index=False)
+    label_issues[label_issues["is_label_issue"] == True].to_csv('label_issues_scores.csv', index=False)
 
     outlier_issues = lab.get_issues("outlier")
     outlier_issues_idx = outlier_issues[outlier_issues["is_outlier_issue"] == True].index.to_numpy()
     outlier_issues_df = df.iloc[outlier_issues_idx]
     outlier_issues_df.to_csv('outlier_issues.csv', index=False)
+    outlier_issues[outlier_issues["is_outlier_issue"] == True].to_csv('outlier_issues_scores.csv', index=False)
 
 
     duplicate_issues = lab.get_issues("near_duplicate")

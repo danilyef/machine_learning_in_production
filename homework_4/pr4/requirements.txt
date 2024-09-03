@@ -1,1 +1,1 @@
-cleanlab
+cleanlab==2.6.6

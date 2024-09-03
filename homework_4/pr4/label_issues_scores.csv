@@ -1,0 +1,5 @@
+is_label_issue,label_score,given_label,predicted_label
+True,0.20127963476428865,4,6
+True,0.1453738242128867,4,2
+True,0.14309154875404048,2,5
+True,0.09542877980390857,2,6
