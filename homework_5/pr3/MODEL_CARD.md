@@ -18,36 +18,24 @@
 - **Dataset**: Emails from customers to the Company X
 - **Preprocessing**: 
 
-    \begin{itemize}
-        \item \textbf{Deletion of greetings, signatures, and footers:}
-            \begin{enumerate}
-                \item Save common greetings and signatures in a text file.
-                \item Use regular expressions for initial removal.
-                \item Train NER network (\url{https://huggingface.co/flair/ner-german}) for advanced detection.
-            \end{enumerate}
-        
-        \item \textbf{Anonymization of personal data:}
-            \begin{itemize}
-                \item Utilize NER network (\url{https://huggingface.co/flair/ner-german}).
-            \end{itemize}
-        
-        \item \textbf{Replacement of specific elements:}
-            \begin{itemize}
-                \item Replace dates, numbers, and URLs with universal tokens (\texttt{<DATE>}, \texttt{<NUMBER>}, \texttt{<URL>}).
-                \item Implement using regular expressions.
-            \end{itemize}
-        
-        \item \textbf{Character filtering:}
-            \begin{itemize}
-                \item Remove all non-ASCII characters, preserving German umlauts.
-            \end{itemize}
-        
-        \item \textbf{Tokenization:}
-            \begin{itemize}
-                \item Convert text words/tokens to integers.
-                \item Rationale: Neural networks require integer inputs rather than raw text.
-            \end{itemize}
-    \end{itemize}
+    - **Deletion of greetings, signatures, and footers:**
+        1. Save common greetings and signatures in a text file.
+        2. Use regular expressions for initial removal.
+        3. Train NER network ([https://huggingface.co/flair/ner-german](https://huggingface.co/flair/ner-german)) for advanced detection.
+    
+    - **Anonymization of personal data:**
+        - Utilize NER network ([https://huggingface.co/flair/ner-german](https://huggingface.co/flair/ner-german)).
+    
+    - **Replacement of specific elements:**
+        - Replace dates, numbers, and URLs with universal tokens (`<DATE>`, `<NUMBER>`, `<URL>`).
+        - Implement using regular expressions.
+    
+    - **Character filtering:**
+        - Remove all non-ASCII characters, preserving German umlauts.
+    
+    - **Tokenization:**
+        - Convert text words/tokens to integers.
+        - Rationale: Neural networks require integer inputs rather than raw text.
 
 
 ## Dataset Details
