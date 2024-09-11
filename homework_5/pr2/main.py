@@ -10,7 +10,7 @@ from sklearn.metrics import f1_score
 
 def main():
     # Dataset taken from: https://www.openml.org/search?type=data&status=active&id=1597
-    raw_data = loadarff('/Users/daniil.yefimov/Desktop/Github/machine_learning_in_production/homework_5/pr2/phpKo8OWT.arff')
+    raw_data = loadarff('phpKo8OWT.arff')
     df_data = pd.DataFrame(raw_data[0])
 
     df_data.drop(columns = ['Time', 'Amount'], inplace=True)
