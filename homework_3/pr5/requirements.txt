@@ -1,0 +1,6 @@
+pandas==2.2.2
+numpy===1.26.4
+pyarrow==17.0.0
+matplotlib==3.8.4
+tables==3.9.2
+scikit-learn==1.5.1
