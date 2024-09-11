@@ -4,9 +4,9 @@ import shutil
 import pandas as pd
 from datasets import Dataset, DatasetDict
 
+
 class ExampleGen:
-    
-    def __init__(self, data_dir, metadata_dir,dataset_config,seed = None):
+    def __init__(self, data_dir, metadata_dir, dataset_config, seed=None):
         """
         Initializes the ExampleGen class and loads dataset in predefined folder
 
@@ -18,64 +18,68 @@ class ExampleGen:
         self.data_dir = data_dir
         self.metadata_dir = metadata_dir
         self.dataset_config = dataset_config
-        self.cache_dir = os.path.join(metadata_dir,'cache')
+        self.cache_dir = os.path.join(metadata_dir, "cache")
         self.seed = seed
         self.dataset = None
         if len(os.listdir(data_dir)) != 0:
-            self.df_pandas = pd.read_parquet(os.path.join(self.data_dir,'dataset.parquet'))
-
-        
-
+            self.df_pandas = pd.read_parquet(
+                os.path.join(self.data_dir, "dataset.parquet")
+            )
 
     def shuffle_dataset(self):
         """
         Shuffles the dataset.
         """
         self.dataset = self.dataset.shuffle()
-        
-        
+
     def preprocessing(self):
-
         # drop duplicates:
-        if len(self.dataset_config['delete_duplicates']) > 0:
-            self.df_pandas =  self.df_pandas.drop_duplicates(subset = self.dataset_config['delete_duplicates'])
-        
-        
-        # filter categories:
-        categories_filtered = self.dataset_config['filter']
-        self.df_pandas = self.df_pandas[self.df_pandas['label'].isin(categories_filtered)]        
-        
-        # Join Subject and Category into one category 
-        self.df_pandas['text'] = self.df_pandas['subject'] + ' ' + self.df_pandas['text'] 
-        
-        # Delete Unnecessary columns
-        columns_to_delete = self.dataset_config.get('columns_to_delete')
-        self.df_pandas.drop(columns=columns_to_delete, inplace=True)
-        
-        # Convert to Dataset Huggingface
-        self.dataset = Dataset.from_pandas(self.df_pandas,preserve_index = False)
-        
-        # Encode grouped category as a label
-        label_column = self.dataset_config.get('label_column')
-        self.dataset = self.dataset.class_encode_column(label_column)
-        
+        if len(self.dataset_config["delete_duplicates"]) > 0:
+            self.df_pandas = self.df_pandas.drop_duplicates(
+                subset=self.dataset_config["delete_duplicates"]
+            )
 
-        
+        # filter categories:
+        categories_filtered = self.dataset_config["filter"]
+        self.df_pandas = self.df_pandas[
+            self.df_pandas["label"].isin(categories_filtered)
+        ]
+
+        # Join Subject and Category into one category
+        self.df_pandas["text"] = (
+            self.df_pandas["subject"] + " " + self.df_pandas["text"]
+        )
+
+        # Delete Unnecessary columns
+        columns_to_delete = self.dataset_config.get("columns_to_delete")
+        self.df_pandas.drop(columns=columns_to_delete, inplace=True)
+
+        # Convert to Dataset Huggingface
+        self.dataset = Dataset.from_pandas(self.df_pandas, preserve_index=False)
+
+        # Encode grouped category as a label
+        label_column = self.dataset_config.get("label_column")
+        self.dataset = self.dataset.class_encode_column(label_column)
 
     def split_dataset(self):
         """
         Splits the dataset into training and evaluation subsets.
 
         """
-       
-        
+
         # Perform Dataset Split (stratified or not)
-        stratified_column = self.dataset_config.get('stratified')
-        split_ratio = self.dataset_config.get('split_ratio')
+        stratified_column = self.dataset_config.get("stratified")
+        split_ratio = self.dataset_config.get("split_ratio")
         if stratified_column != "":
-            self.dataset = self.dataset.train_test_split(train_size = split_ratio, stratify_by_column = stratified_column,seed = self.seed)
+            self.dataset = self.dataset.train_test_split(
+                train_size=split_ratio,
+                stratify_by_column=stratified_column,
+                seed=self.seed,
+            )
         else:
-            self.dataset = self.dataset.train_test_split(train_size = split_ratio, seed = self.seed)
+            self.dataset = self.dataset.train_test_split(
+                train_size=split_ratio, seed=self.seed
+            )
 
     def save_dataset(self):
         """
@@ -84,13 +88,13 @@ class ExampleGen:
         Args:
             version (str): The version name for the saved dataset.
         """
-        save_dir = os.path.join(self.metadata_dir,'dataset')
+        save_dir = os.path.join(self.metadata_dir, "dataset")
         os.makedirs(save_dir, exist_ok=True)
         self.dataset.save_to_disk(save_dir)
         if self.df_pandas is not None:
-            self.df_pandas.to_pickle(os.path.join(save_dir,'dataset_pandas.pkl'))
-        
-        with open(os.path.join(save_dir,'dataset_config.pkl'), 'wb') as fp:
+            self.df_pandas.to_pickle(os.path.join(save_dir, "dataset_pandas.pkl"))
+
+        with open(os.path.join(save_dir, "dataset_config.pkl"), "wb") as fp:
             pickle.dump(self.dataset_config, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
     def load_dataset(self):
@@ -101,12 +105,11 @@ class ExampleGen:
             version (str): The version name of the dataset to be loaded.
         """
 
-        load_dir = os.path.join(self.metadata_dir,'dataset')
+        load_dir = os.path.join(self.metadata_dir, "dataset")
         self.dataset = DatasetDict.load_from_disk(load_dir)
-        
-        with open(os.path.join(load_dir,'dataset_config.pkl'), 'rb') as file:
-            self.dataset_config = pickle.load(file)
 
+        with open(os.path.join(load_dir, "dataset_config.pkl"), "rb") as file:
+            self.dataset_config = pickle.load(file)
 
     def cleanup(self):
         """
