@@ -8,6 +8,7 @@ __pycache__/
 
 .DS_Store
 
+.ruff_cache/
 # Distribution / packaging
 .Python
 build/
