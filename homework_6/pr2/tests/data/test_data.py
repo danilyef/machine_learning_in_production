@@ -5,7 +5,7 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def dataset():
     df = pd.read_parquet("./homework_6/pr2/data/data.parquet")
 
