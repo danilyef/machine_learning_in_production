@@ -1,114 +1,92 @@
+"""🐧 LIT demo for tabular data using penguin classification.
 
+To run:
+  python -m lit_nlp.examples.penguin.demo --port=5432
 
-import lit_nlp
-from lit_nlp.api import dataset as lit_dataset
-from lit_nlp.api import types
-from lit_nlp.api import model 
-import pandas as pd
-from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
-import torch
-import pathlib
-import os
+Then navigate to localhost:5432 to access the demo UI.
+"""
 
+from collections.abc import Sequence
+import sys
+from typing import Optional
+
+from absl import app
 from absl import flags
+from absl import logging
+from lit_nlp import dev_server
+from lit_nlp import server_flags
+from lit_nlp.api import layout
+from lit_nlp.components import minimal_targeted_counterfactuals
+from model import CustomModel
+from data import CustomDataset
+MODEL_PATH = 'https://storage.googleapis.com/what-if-tool-resources/lit-models/penguin.h5'  
+
+FLAGS = flags.FLAGS
+FLAGS.set_default('default_layout', 'penguins')
+_MODEL_PATH = flags.DEFINE_string('model_path', MODEL_PATH,
+                                  'Path to load trained model.')
+
+_MAX_EXAMPLES = flags.DEFINE_integer(
+    'max_examples',
+    None,
+    (
+        'Maximum number of examples to load into LIT. '
+        'Set --max_examples=200 for a quick start.'
+    ),
+)
+
+modules = layout.LitModuleName
+PENGUIN_LAYOUT = layout.LitCanonicalLayout(
+    upper={
+        'Main': [
+            modules.DiveModule,
+            modules.DataTableModule,
+            modules.DatapointEditorModule,
+        ]
+    },
+    lower=layout.STANDARD_LAYOUT.lower,
+    description='Custom layout for the Palmer Penguins demo.',
+)
+CUSTOM_LAYOUTS = layout.DEFAULT_LAYOUTS | {'penguins': PENGUIN_LAYOUT}
 
 
 
-class TextClassifier:
-    def __init__(self, model_name="./model"):
-        self.tokenizer = DistilBertTokenizer.from_pretrained(model_name)
-        self.model = DistilBertForSequenceClassification.from_pretrained(model_name)
-        self.model.eval()
+def get_wsgi_app() -> Optional[dev_server.LitServerType]:
+  FLAGS.set_default('server_type', 'external')
+  FLAGS.set_default('demo_mode', True)
 
-    def predict(self, text):
-        inputs = self.tokenizer(
-            text, return_tensors="pt", truncation=True, padding=True
-        )
-        with torch.no_grad():
-            outputs = self.model(**inputs)
-        predicted_class_id = torch.argmax(outputs.logits, dim=1).item()
-        return self.model.config.id2label[predicted_class_id]
-
-    def predict_proba(self, text):
-        inputs = self.tokenizer(
-            text, return_tensors="pt", truncation=True, padding=True
-        )
-        with torch.no_grad():
-            outputs = self.model(**inputs)
-        probabilities = torch.softmax(outputs.logits, dim=1)
-        return probabilities.squeeze().max().item()
+  unused = flags.FLAGS(sys.argv, known_only=True)
+  if unused:
+    logging.info('penguin_demo:get_wsgi_app() called with unused args: %s',
+                 unused)
+  return main([])
 
 
+def main(argv: Sequence[str]) -> Optional[dev_server.LitServerType]:
+  if len(argv) > 1:
+    raise app.UsageError('Too many command-line arguments.')
 
-class MultiNLIData(lit_dataset.Dataset):
-	"""Loader for MultiNLI development set."""
+  models = {'species classifier': CustomModel(_MODEL_PATH.value)}
+  datasets = {'penguins': CustomDataset()}
 
-	NLI_LABELS = ['POSITIVE', 'NEGATIVE']
+  if _MAX_EXAMPLES.value is not None:
+    for name in datasets:
+      logging.info("Dataset: '%s' with %d examples", name, len(datasets[name]))
+      datasets[name] = datasets[name].slice[: _MAX_EXAMPLES.value]
+      logging.info('  truncated to %d examples', len(datasets[name]))
 
-	def __init__(self, path: str):
-		df = pd.read_parquet(path)
-		self._examples = [{
-			'text': row['text'],
-			'label': row['label'],
-		} for _, row in df.iterrows()]
+  generators = {
+      'Minimal Targeted Counterfactuals':
+          minimal_targeted_counterfactuals.TabularMTC()
+  }
+  lit_demo = dev_server.Server(
+      models,
+      datasets,
+      generators=generators,
+      layouts=CUSTOM_LAYOUTS,
+      **server_flags.get_flags())
+  return lit_demo.serve()
 
-	def spec(self) -> types.Spec:
-		return {
-			'text': types.TextSegment(),
-			'label': types.CategoryLabel(vocab=self.NLI_LABELS),
-		}
-
-class NLIModel(model.Model):
-
-	NLI_LABELS = ['POSITIVE', 'NEGATIVE']
-
-	def __init__(self):
-		self.model = TextClassifier()
-
-	# LIT API implementations
-	def predict(self, inputs):
-		"""Predict on a stream of examples."""
-		predictions = []
-		for input_data in inputs:
-			text = input_data['text']
-			label = self.model.predict(text)
-			probability = self.model.predict_proba(text)
-			predictions.append({
-				'label': label,
-				'probability': probability
-			})
-		return predictions
-
-	def input_spec(self) -> types.Spec:
-		"""Describe the inputs to the model."""
-		return {
-			'text': types.TextSegment(),
-		}
-
-	def output_spec(self) -> types.Spec:
-		"""Describe the model outputs."""
-		return {
-			'label': types.CategoryLabel(vocab=self.NLI_LABELS),
-			'probability': types.RegressionScore(min_val=0, max_val=1)
-		}
-
-
-
-def main():
-	# MulitiNLIData implements the Dataset API
-	datasets = {
-		'mnli_matched': MultiNLIData('/Users/daniil.yefimov/Desktop/Github/machine_learning_in_production/homework_6/pr5/data/data.parquet'),
-		'mnli_mismatched': MultiNLIData('/Users/daniil.yefimov/Desktop/Github/machine_learning_in_production/homework_6/pr5/data/data.parquet'),
-	}
-
-	# NLIModel implements the Model API
-	models = {
-		'model': NLIModel()
-	}
-
-	client_root = lit_nlp.dev_server.get_default_client_root()
-	lit_demo = lit_nlp.dev_server.Server(models, datasets, port=4321, client_root=client_root)
-	lit_demo.serve()
 
 if __name__ == '__main__':
-	main()
+  app.run(main)
