@@ -10,7 +10,7 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.nn.parallel import DistributedDataParallel as DDP
 from accelerate import Accelerator
-
+import time
 
 def setup(rank, world_size):
     os.environ['MASTER_ADDR'] = 'localhost'
@@ -86,4 +86,7 @@ def train_ddp():
     
 
 if __name__ == "__main__":
+    start_time = time.time()
     train_ddp()
+    end_time = time.time()
+    print(f"Time taken Accelerate: {end_time - start_time} seconds")

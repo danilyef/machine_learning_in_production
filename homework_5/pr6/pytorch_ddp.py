@@ -9,6 +9,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.nn.parallel import DistributedDataParallel as DDP
+import time
 
 
 def setup(rank, world_size):
@@ -104,4 +105,7 @@ def run_training(train_fn, world_size):
     
 if __name__ == "__main__":
     world_size = 2
+    start_time = time.time()
     run_training(train_ddp, world_size)
+    end_time = time.time()
+    print(f"Time taken: {end_time - start_time} seconds")
