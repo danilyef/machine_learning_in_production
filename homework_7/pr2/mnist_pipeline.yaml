@@ -1,0 +1,202 @@
+# PIPELINE DEFINITION
+# Name: mnist-training-pipeline
+components:
+  comp-load-training-data:
+    executorLabel: exec-load-training-data
+    outputDefinitions:
+      artifacts:
+        dataset:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+  comp-save-trained-model:
+    executorLabel: exec-save-trained-model
+    inputDefinitions:
+      artifacts:
+        model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+  comp-train-model:
+    executorLabel: exec-train-model
+    inputDefinitions:
+      artifacts:
+        dataset:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+    outputDefinitions:
+      artifacts:
+        model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+deploymentSpec:
+  executors:
+    exec-load-training-data:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - load_training_data
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.9.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&\
+          \  python3 -m pip install --quiet --no-warn-script-location 'torch' 'torchvision'\
+          \ && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef load_training_data(dataset: Output[Dataset]):\n    import torch\n\
+          \    import torchvision\n    import shutil\n    from pathlib import Path\n\
+          \    import os\n    # Load MNIST dataset\n\n    os.makedirs('./app/data',exist_ok=True)\n\
+          \    train_dataset_obj = torchvision.datasets.MNIST(root=Path(\"./app/data\"\
+          ), train=True, download=True,\n                                        \
+          \           transform=torchvision.transforms.ToTensor())\n\n\n\n    shutil.move(Path(\"\
+          ./app/data\"), dataset.path)\n\n"
+        image: python:3.11
+    exec-save-trained-model:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - save_trained_model
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.9.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&\
+          \  python3 -m pip install --quiet --no-warn-script-location 'torch' 'torchvision'\
+          \ 'wandb' && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef save_trained_model(model: Input[Model]):\n    import torch\n\
+          \    import shutil\n    import wandb\n    from pathlib import Path\n   \
+          \ import os\n\n\n\n    Path(\"./tmp/model\").mkdir(exist_ok=True,parents=True)\n\
+          \n    shutil.copy(model.path, Path(\"./tmp/model/model.pth\"))\n\n    #\
+          \ Load the trained model\n    model_state_dict = torch.load(Path(\"./tmp/model/model.pth\"\
+          ))\n\n    print(model_state_dict['1.weight'][:2,:5])\n\n    # Set the Weights\
+          \ & Biases API key\n    os.environ[\"WANDB_API_KEY\"] = '0935cbeb7aa9b75ee50eb2235ec860d7ecf8e384'\n\
+          \n    # Initialize wandb\n    wandb.init(project=\"mnist_training\", name=\"\
+          model_upload\")\n\n    # Save and upload the model to wandb\n    artifact\
+          \ = wandb.Artifact('mnist_model', type='model')\n    with artifact.new_file('model.pth',\
+          \ mode='wb') as f:\n        torch.save(model_state_dict, f)\n    wandb.log_artifact(artifact)\n\
+          \n    wandb.finish()\n\n"
+        image: python:3.11
+    exec-train-model:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - train_model
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.9.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&\
+          \  python3 -m pip install --quiet --no-warn-script-location 'torch' 'torchvision'\
+          \ && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef train_model(dataset: Input[Dataset], model: Output[Model]):\n\
+          \    import torch\n    import torchvision\n    import shutil\n    from pathlib\
+          \ import Path\n    Path(\"./tmp\").mkdir(exist_ok=True,parents=True)\n\n\
+          \    shutil.copytree(dataset.path, Path(\"./tmp/data\"), dirs_exist_ok=True)\n\
+          \n\n    # Load datasets\n    train_dataset_obj = torchvision.datasets.MNIST(root=Path(\"\
+          ./tmp/data\"), train=True, download=False,\n                           \
+          \                        transform=torchvision.transforms.ToTensor())\n\n\
+          \    # Define a simple neural network\n    model_obj = torch.nn.Sequential(\n\
+          \        torch.nn.Flatten(),\n        torch.nn.Linear(28*28, 128),\n   \
+          \     torch.nn.ReLU(),\n        torch.nn.Linear(128, 10)\n    )\n\n    #\
+          \ Train the model\n    optimizer = torch.optim.Adam(model_obj.parameters())\n\
+          \    criterion = torch.nn.CrossEntropyLoss()\n\n    train_loader = torch.utils.data.DataLoader(train_dataset_obj,\
+          \ batch_size=64, shuffle=True)\n\n    for batch_idx, batch in enumerate(train_loader):\n\
+          \        if batch_idx >= 5:\n            break\n        inputs, targets\
+          \ = batch\n        outputs = model_obj(inputs)\n        loss = criterion(outputs,\
+          \ targets)\n        optimizer.zero_grad()\n        loss.backward()\n   \
+          \     optimizer.step()\n\n\n\n    Path(\"./tmp/model\").mkdir(exist_ok=True,parents=True)\n\
+          \    # Save the trained model\n    torch.save(model_obj.state_dict(), Path(\"\
+          ./tmp/model/model.pth\"))\n    shutil.move(Path(\"./tmp/model/model.pth\"\
+          ), model.path)\n\n"
+        image: python:3.11
+pipelineInfo:
+  name: mnist-training-pipeline
+root:
+  dag:
+    tasks:
+      load-training-data:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-load-training-data
+        taskInfo:
+          name: load-training-data
+      save-trained-model:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-save-trained-model
+        dependentTasks:
+        - train-model
+        inputs:
+          artifacts:
+            model:
+              taskOutputArtifact:
+                outputArtifactKey: model
+                producerTask: train-model
+        taskInfo:
+          name: save-trained-model
+      train-model:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-train-model
+        dependentTasks:
+        - load-training-data
+        inputs:
+          artifacts:
+            dataset:
+              taskOutputArtifact:
+                outputArtifactKey: dataset
+                producerTask: load-training-data
+        taskInfo:
+          name: train-model
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.9.0
