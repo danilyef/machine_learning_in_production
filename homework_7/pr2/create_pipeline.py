@@ -53,6 +53,8 @@ def train_model(dataset: Input[Dataset], model: Output[Model]):
     train_loader = torch.utils.data.DataLoader(train_dataset_obj, batch_size=64, shuffle=True)
     
     for batch_idx, batch in enumerate(train_loader):
+        if batch_idx == 5:
+            break
         inputs, targets = batch
         outputs = model_obj(inputs)
         loss = criterion(outputs, targets)
@@ -64,7 +66,7 @@ def train_model(dataset: Input[Dataset], model: Output[Model]):
     
     Path("./tmp/model").mkdir(exist_ok=True,parents=True)
     # Save the trained model
-    torch.save(model_obj.state_dict(), Path("./tmp/model/model.pth"))
+    torch.save(model_obj, Path("./tmp/model/model.pth"))
     shutil.move(Path("./tmp/model/model.pth"), model.path)
 
 @dsl.component(base_image='python:3.11', packages_to_install=['torch', 'torchvision', 'wandb'])
@@ -82,9 +84,8 @@ def save_trained_model(model: Input[Model]):
     shutil.copy(model.path, Path("./tmp/model/model.pth"))
 
     # Load the trained model
-    model_state_dict = torch.load(Path("./tmp/model/model.pth"))
+    model_obj = torch.load(Path("./tmp/model/model.pth"))
 
-    print(model_state_dict['1.weight'][:2,:5])
 
     # Set the Weights & Biases API key
     os.environ["WANDB_API_KEY"] = '0935cbeb7aa9b75ee50eb2235ec860d7ecf8e384'
@@ -95,7 +96,7 @@ def save_trained_model(model: Input[Model]):
     # Save and upload the model to wandb
     artifact = wandb.Artifact('mnist_model', type='model')
     with artifact.new_file('model.pth', mode='wb') as f:
-        torch.save(model_state_dict, f)
+        torch.save(model_obj, f)
     wandb.log_artifact(artifact)
 
     wandb.finish()
@@ -116,6 +117,6 @@ if __name__ == '__main__':
     client = kfp.Client()
     pipeline_info = client.upload_pipeline(
         pipeline_package_path='mnist_pipeline.yaml',
-        pipeline_name='MNIST Training Pipeline 2',
+        pipeline_name='MNIST Training Pipeline',
         description='A pipeline to train a model on the MNIST dataset'
     )
