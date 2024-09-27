@@ -156,19 +156,19 @@ deploymentSpec:
           \ shuffle=True)\n\n    # Load model\n    Path(\"./tmp/model\").mkdir(exist_ok=True,parents=True)\n\
           \    shutil.copy(model.path, Path(\"./tmp/model/model.pth\"))\n\n    # Load\
           \ the trained model\n    model = torch.load(Path(\"./tmp/model/model.pth\"\
-          ))\n    print(model['1.weight'][:2,:5])\n\n    total_correct = 0\n    total_samples\
-          \ = 0\n\n    with torch.no_grad():  # Disable gradient computation\n   \
-          \     for batch_idx, (inputs, targets) in enumerate(test_loader):\n    \
-          \        if batch_idx == 5:\n                break\n            outputs\
-          \ = model(inputs)\n            _, predicted = torch.max(outputs, 1)\n  \
-          \          total_samples += targets.size(0)\n            total_correct +=\
-          \ (predicted == targets).sum().item()\n\n    accuracy = total_correct /\
-          \ total_samples\n    print(f\"Test Accuracy: {accuracy:.4f}\")\n\n    #\
-          \ Create result directory\n    result_dir = Path(\"./tmp/result\")\n   \
-          \ result_dir.mkdir(exist_ok=True, parents=True)\n\n    # Write accuracy\
-          \ to a text file\n    with open(result_dir / \"accuracy.txt\", \"w\") as\
-          \ f:\n        f.write(f\"Test Accuracy: {accuracy:.4f}\")\n    # Move the\
-          \ result to the output\n    shutil.move(result_dir, result.path)\n\n"
+          ))\n    model.eval()\n\n    total_correct = 0\n    total_samples = 0\n\n\
+          \    with torch.no_grad():  # Disable gradient computation\n        for\
+          \ batch_idx, (inputs, targets) in enumerate(test_loader):\n            if\
+          \ batch_idx == 5:\n                break\n            outputs = model(inputs)\n\
+          \            _, predicted = torch.max(outputs, 1)\n            total_samples\
+          \ += targets.size(0)\n            total_correct += (predicted == targets).sum().item()\n\
+          \n    accuracy = total_correct / total_samples\n    print(f\"Test Accuracy:\
+          \ {accuracy:.4f}\")\n\n    # Create result directory\n    result_dir = Path(\"\
+          ./tmp/result\")\n    result_dir.mkdir(exist_ok=True, parents=True)\n\n \
+          \   # Write accuracy to a text file\n    with open(result_dir / \"accuracy.txt\"\
+          , \"w\") as f:\n        f.write(f\"Test Accuracy: {accuracy:.4f}\")\n  \
+          \  # Move the result to the output\n    shutil.move(result_dir, result.path)\n\
+          \n"
         image: python:3.11
     exec-save-inference-results:
       container:

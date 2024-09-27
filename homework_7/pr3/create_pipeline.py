@@ -145,7 +145,7 @@ if __name__ == '__main__':
     client = kfp.Client()
     pipeline_info = client.upload_pipeline(
         pipeline_package_path='mnist_inference_pipeline.yaml',
-        pipeline_name='MNIST Inference Pipeline 2',
+        pipeline_name='MNIST Inference Pipeline 3',
         description='A pipeline to train a model on the MNIST dataset'
     )
 
