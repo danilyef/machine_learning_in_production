@@ -1,0 +1,268 @@
+# PIPELINE DEFINITION
+# Name: mnist-inference-pipeline
+components:
+  comp-load-inference-data:
+    executorLabel: exec-load-inference-data
+    outputDefinitions:
+      artifacts:
+        dataset:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+  comp-load-trained-model:
+    executorLabel: exec-load-trained-model
+    outputDefinitions:
+      artifacts:
+        model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+  comp-run-inference:
+    executorLabel: exec-run-inference
+    inputDefinitions:
+      artifacts:
+        dataset:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+        model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+    outputDefinitions:
+      artifacts:
+        result:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+  comp-save-inference-results:
+    executorLabel: exec-save-inference-results
+    inputDefinitions:
+      artifacts:
+        result:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+deploymentSpec:
+  executors:
+    exec-load-inference-data:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - load_inference_data
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.9.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&\
+          \  python3 -m pip install --quiet --no-warn-script-location 'torch' 'torchvision'\
+          \ && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef load_inference_data(dataset: Output[Dataset]):\n    import torch\n\
+          \    import torchvision\n    import shutil\n    from pathlib import Path\n\
+          \    import os\n    # Load MNIST dataset\n\n    os.makedirs('./app/data',exist_ok=True)\n\
+          \    test_dataset_obj = torchvision.datasets.MNIST(root=Path(\"./app/data\"\
+          ), train=False, download=True,\n                                       \
+          \            transform=torchvision.transforms.ToTensor())\n    shutil.move(Path(\"\
+          ./app/data\"), dataset.path)\n\n"
+        image: python:3.11
+    exec-load-trained-model:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - load_trained_model
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.9.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&\
+          \  python3 -m pip install --quiet --no-warn-script-location 'torch' 'torchvision'\
+          \ 'wandb' && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef load_trained_model(model: Output[Model]):\n    import torch\n\
+          \    import torchvision\n    import shutil\n    from pathlib import Path\n\
+          \    import wandb\n    import os\n\n\n    Path(\"./tmp/model\").mkdir(exist_ok=True,parents=True)\n\
+          \n\n    # Set the Weights & Biases API key\n    os.environ[\"WANDB_API_KEY\"\
+          ] = '0935cbeb7aa9b75ee50eb2235ec860d7ecf8e384'\n\n    # Initialize wandb\n\
+          \    wandb.init(project=\"mnist_training\", name=\"model_download\")\n\n\
+          \    # Download the model from wandb\n    artifact = wandb.use_artifact('mnist_model:latest',\
+          \ type='model')\n    model_dir = artifact.download(root=Path(\"./tmp/model\"\
+          ))\n\n    wandb.finish()\n\n    shutil.move(Path(\"./tmp/model/model.pth\"\
+          ), model.path)\n\n"
+        image: python:3.11
+    exec-run-inference:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - run_inference
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.9.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&\
+          \  python3 -m pip install --quiet --no-warn-script-location 'torch' 'torchvision'\
+          \ 'wandb' && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef run_inference(model: Input[Model], dataset: Input[Dataset], result:\
+          \ Output[Dataset]):\n    import torch\n    import torchvision\n    import\
+          \ shutil\n    from pathlib import Path\n    import os\n\n    # Load datasets\n\
+          \    Path(\"./tmp\").mkdir(exist_ok=True,parents=True)\n    shutil.copytree(dataset.path,\
+          \ Path(\"./tmp/data\"), dirs_exist_ok=True)\n\n    test_dataset_obj = torchvision.datasets.MNIST(root=Path(\"\
+          ./tmp/data\"), train=False, download=False,\n                          \
+          \                         transform=torchvision.transforms.ToTensor())\n\
+          \    test_loader = torch.utils.data.DataLoader(test_dataset_obj, batch_size=64,\
+          \ shuffle=True)\n\n    # Load model\n    Path(\"./tmp/model\").mkdir(exist_ok=True,parents=True)\n\
+          \    shutil.copy(model.path, Path(\"./tmp/model/model.pth\"))\n\n    # Load\
+          \ the trained model\n    model = torch.load(Path(\"./tmp/model/model.pth\"\
+          ))\n    model.eval()\n\n    total_correct = 0\n    total_samples = 0\n\n\
+          \    with torch.no_grad():  # Disable gradient computation\n        for\
+          \ batch_idx, (inputs, targets) in enumerate(test_loader):\n            if\
+          \ batch_idx == 5:\n                break\n            outputs = model(inputs)\n\
+          \            _, predicted = torch.max(outputs, 1)\n            total_samples\
+          \ += targets.size(0)\n            total_correct += (predicted == targets).sum().item()\n\
+          \n    accuracy = total_correct / total_samples\n    print(f\"Test Accuracy:\
+          \ {accuracy:.4f}\")\n\n    # Create result directory\n    result_dir = Path(\"\
+          ./tmp/result\")\n    result_dir.mkdir(exist_ok=True, parents=True)\n\n \
+          \   # Write accuracy to a text file\n    with open(result_dir / \"accuracy.txt\"\
+          , \"w\") as f:\n        f.write(f\"Test Accuracy: {accuracy:.4f}\")\n  \
+          \  # Move the result to the output\n    shutil.move(result_dir, result.path)\n\
+          \n"
+        image: python:3.11
+    exec-save-inference-results:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - save_inference_results
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.9.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&\
+          \  python3 -m pip install --quiet --no-warn-script-location 'torch' 'torchvision'\
+          \ 'wandb' && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef save_inference_results(result: Input[Dataset]):\n    import torch\n\
+          \    import shutil\n    import wandb\n    from pathlib import Path\n   \
+          \ import os\n\n    Path(\"./tmp/result\").mkdir(exist_ok=True,parents=True)\n\
+          \n    shutil.copytree(result.path, Path(\"./tmp/result\"), dirs_exist_ok=True)\n\
+          \n    with open(Path(\"./tmp/result/accuracy.txt\"), \"r\") as f:\n    \
+          \    accuracy = f.read()\n\n    print(accuracy)\n\n    # Set the Weights\
+          \ & Biases API key\n    os.environ[\"WANDB_API_KEY\"] = '0935cbeb7aa9b75ee50eb2235ec860d7ecf8e384'\n\
+          \n    # Initialize wandb\n    wandb.init(project=\"mnist_inference\", name=\"\
+          inference_results\")\n\n    # Log the existing accuracy file to wandb\n\
+          \    artifact = wandb.Artifact('mnist_inference', type='model')\n    artifact.add_file(Path(\"\
+          ./tmp/result/accuracy.txt\"))\n    wandb.log_artifact(artifact)\n    wandb.finish()\n\
+          \n"
+        image: python:3.11
+pipelineInfo:
+  name: mnist-inference-pipeline
+root:
+  dag:
+    tasks:
+      load-inference-data:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-load-inference-data
+        taskInfo:
+          name: load-inference-data
+      load-trained-model:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-load-trained-model
+        taskInfo:
+          name: load-trained-model
+      run-inference:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-run-inference
+        dependentTasks:
+        - load-inference-data
+        - load-trained-model
+        inputs:
+          artifacts:
+            dataset:
+              taskOutputArtifact:
+                outputArtifactKey: dataset
+                producerTask: load-inference-data
+            model:
+              taskOutputArtifact:
+                outputArtifactKey: model
+                producerTask: load-trained-model
+        taskInfo:
+          name: run-inference
+      save-inference-results:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-save-inference-results
+        dependentTasks:
+        - run-inference
+        inputs:
+          artifacts:
+            result:
+              taskOutputArtifact:
+                outputArtifactKey: result
+                producerTask: run-inference
+        taskInfo:
+          name: save-inference-results
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.9.0
