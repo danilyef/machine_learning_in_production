@@ -1,0 +1,5 @@
+torch==2.2.2
+torchvision==0.17.2
+wandb==0.18.1
+apache-airflow-providers-cncf-kubernetes==8.3.3
+apache-airflow==2.10.0
