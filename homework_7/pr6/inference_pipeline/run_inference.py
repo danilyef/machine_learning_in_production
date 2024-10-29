@@ -1,16 +1,14 @@
 import torch
 import torchvision
-import shutil
 from pathlib import Path
 
-def train_model():
-    # Create temporary directories
+def run_inference():
+
     artifact_path = Path("/tmp/")
 
     # Load dataset from the mounted volume
-    train_dataset_obj = torchvision.datasets.MNIST(root=artifact_path, train=True, download=False,
+    test_dataset_obj = torchvision.datasets.MNIST(root=artifact_path, train=False, download=False,
                                                    transform=torchvision.transforms.ToTensor())
-
     # Define model
     model_obj = torch.nn.Sequential(
         torch.nn.Flatten(),
@@ -23,9 +21,9 @@ def train_model():
     optimizer = torch.optim.Adam(model_obj.parameters())
     criterion = torch.nn.CrossEntropyLoss()
 
-    train_loader = torch.utils.data.DataLoader(train_dataset_obj, batch_size=64, shuffle=True)
+    test_loader = torch.utils.data.DataLoader(test_dataset_obj, batch_size=64, shuffle=True)
 
-    for batch_idx, batch in enumerate(train_loader):
+    for batch_idx, batch in enumerate(test_loader):
         if batch_idx == 2:
             break
         inputs, targets = batch
@@ -35,9 +33,5 @@ def train_model():
         loss.backward()
         optimizer.step()
 
-    # Save the trained model
-    torch.save(model_obj.state_dict(), artifact_path / "model.pth")
-    print(f"Model saved to {artifact_path / 'model.pth'}")
-
 if __name__ == "__main__":
-    train_model()
+    run_inference()
