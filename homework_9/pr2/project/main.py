@@ -2,16 +2,15 @@ import gradio as gr
 from utils import Model
 
 
-model = Model(tokenizer_name="distilbert-base-uncased-finetuned-sst-2-english", model_name="distilbert-base-uncased-finetuned-sst-2-english")
+model = Model(model_name="distilbert-base-uncased-finetuned-sst-2-english")
 
 def analyze_sentiment(text):
     # Get the prediction
     label = model.predict(text)
-    probabilities = model.predict_proba(text)
+    probability = model.predict_proba(text)
     
-    # Get probability score for predicted class
-    score = probabilities[1] if label == "POSITIVE" else probabilities[0]
-    score = f"{score:.3f}"
+    # Format probability score
+    score = f"{probability:.3f}"
 
     # Add color to label
     colored_label = f"<span style='color: green'>{label}</span>" if label == "POSITIVE" else f"<span style='color: red'>{label}</span>"

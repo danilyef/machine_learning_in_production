@@ -1,8 +1,7 @@
 import streamlit as st
 from utils import Model
 
-
-model = Model(tokenizer_name="distilbert-base-uncased-finetuned-sst-2-english", model_name="distilbert-base-uncased-finetuned-sst-2-english")
+model = Model(model_name='distilbert-base-uncased-finetuned-sst-2-english')
 
 # Create the Streamlit app title
 st.title('Sentiment Analysis with DistilBERT')
@@ -17,11 +16,8 @@ analyze_button = st.button("Analyze Sentiment")
 if analyze_button and user_input:
     # Get the prediction
     label = model.predict(user_input)
-    probabilities = model.predict_proba(user_input)
+    score = model.predict_proba(user_input)
     
-    # Get probability score for predicted class
-    score = probabilities[1] if label == "POSITIVE" else probabilities[0]
-
     # Display results
     st.write("### Results:")
     label_color = "green" if label == "POSITIVE" else "red"

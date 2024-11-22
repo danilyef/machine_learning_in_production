@@ -1,22 +1,26 @@
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
 import torch
 
 class Model:
-    def __init__(self,tokenizer_name,model_name):
-        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
-        self.model = AutoModelForSequenceClassification.from_pretrained(model_name)
-        
+    def __init__(self, model_name="distilbert-base-uncased-finetuned-sst-2-english"):
+        self.tokenizer = DistilBertTokenizer.from_pretrained(model_name)
+        self.model = DistilBertForSequenceClassification.from_pretrained(model_name)
+        self.model.eval()
+
     def predict(self, text):
-        inputs = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
+        inputs = self.tokenizer(
+            text, return_tensors="pt", truncation=True, padding=True
+        )
         with torch.no_grad():
             outputs = self.model(**inputs)
-        prediction = torch.nn.functional.softmax(outputs.logits, dim=-1)
-        label_id = prediction.argmax().item()
-        return "POSITIVE" if label_id == 1 else "NEGATIVE"
-        
+        predicted_class_id = torch.argmax(outputs.logits, dim=1).item()
+        return self.model.config.id2label[predicted_class_id]
+
     def predict_proba(self, text):
-        inputs = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
+        inputs = self.tokenizer(
+            text, return_tensors="pt", truncation=True, padding=True
+        )
         with torch.no_grad():
             outputs = self.model(**inputs)
-        probabilities = torch.nn.functional.softmax(outputs.logits, dim=-1)
-        return probabilities[0].tolist()  # Return probabilities for all classes
+        probabilities = torch.softmax(outputs.logits, dim=1)
+        return probabilities.squeeze().max().item()

@@ -6,5 +6,5 @@ streamlit run project/main.py
 
 ## Tests
 ```bash
-pytest tests/test.py
+pytest tests/test_model.py
 ```
