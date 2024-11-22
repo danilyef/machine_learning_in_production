@@ -1,4 +1,4 @@
 accelerate==0.23.0
-torch==2.3.1
-torchvision==0.18.2
+torch==2.2.1
+torchvision==0.18.1
 ray==2.5.1
