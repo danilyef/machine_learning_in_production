@@ -19,7 +19,7 @@ dagster==1.7.14
 dagster-webserver==1.7.14
 apache-airflow-providers-cncf-kubernetes==8.3.3
 apache-airflow==2.10.0
-torchvision==0.17.2
+torchvision==0.17.1
 ray==2.5.1
 pyarrow==17.0.0
 cleanlab==2.6.6
