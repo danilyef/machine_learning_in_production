@@ -24,3 +24,4 @@ ray==2.5.1
 pyarrow==17.0.0
 cleanlab==2.6.6
 minio==7.2.7
+gradio==4.44.1 
