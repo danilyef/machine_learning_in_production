@@ -1,5 +1,5 @@
 import pytest
-from project.utils import Model
+from func.utils import Model
 
 @pytest.fixture
 def model():
