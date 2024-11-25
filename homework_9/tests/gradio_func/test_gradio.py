@@ -37,3 +37,6 @@ def test_model_consistency(model):
     for _ in range(3):
         assert model.predict(text) == first_prediction
         assert abs(model.predict_proba(text) - first_probability) < 1e-6
+
+
+

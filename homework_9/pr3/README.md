@@ -1,8 +1,8 @@
 ## Run
 
 ```bash
-cd homework_9/pr3
-uvicorn app:app --reload
+cd homework_9
+uvicorn pr3.app:app --reload
 ```
 
 ## Tests
