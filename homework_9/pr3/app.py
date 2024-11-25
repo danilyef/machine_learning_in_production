@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from utils import Model
+from .utils import Model
 
 model = Model(model_name='distilbert-base-uncased-finetuned-sst-2-english')
 
