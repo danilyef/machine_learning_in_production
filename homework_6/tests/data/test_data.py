@@ -7,7 +7,7 @@ warnings.filterwarnings("ignore")
 
 @pytest.fixture
 def dataset():
-    df = pd.read_parquet("pr2/data.parquet")
+    df = pd.read_parquet("homework_6/pr2/data.parquet")
 
     return ge.dataset.PandasDataset(df)
 
