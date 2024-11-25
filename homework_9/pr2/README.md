@@ -1,7 +1,7 @@
 ## Run
 ```bash
 pip install -r requirements.txt
-python project/main.py
+python main.py
 ```
 
 ## Tests

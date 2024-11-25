@@ -1,5 +1,5 @@
 import pytest
-from pr1.func_st.utils import Model
+from pr1.utils import Model
 
 @pytest.fixture
 def model():
