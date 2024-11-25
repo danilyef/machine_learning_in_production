@@ -1,7 +1,7 @@
 ## Run
 ```bash
 pip install -r requirements.txt
-streamlit run project/main.py
+streamlit run main.py
 ```
 
 ## Tests

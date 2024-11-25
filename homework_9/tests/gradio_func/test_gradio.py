@@ -1,5 +1,5 @@
 import pytest
-from pr2.func_gradio.utils import Model
+from pr2.utils import Model
 
 @pytest.fixture
 def model():
@@ -37,3 +37,6 @@ def test_model_consistency(model):
     for _ in range(3):
         assert model.predict(text) == first_prediction
         assert abs(model.predict_proba(text) - first_probability) < 1e-6
+
+
+
