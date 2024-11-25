@@ -1,7 +1,7 @@
-name: ci
+name: ci-homework-9
 
 on:
-  push: 
+  push:
   pull_request:
 
 jobs:
@@ -16,6 +16,6 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r main_requirements.txt
+        pip install -r homework_9/requirements.txt
     - name: Run tests
-      run: pytest
+      run: pytest homework_9 -v --tb=long
