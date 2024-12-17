@@ -1,18 +1,3 @@
-'''
-Before starting the script, create a virtual environment:
-
-1. cd /path/to/your/project
-2. python -m venv env
-3. source env/bin/activate
-4. pip install -r requirements.txt
-
-After these steps start script from cmd:
-5. python main.py
-'''
-
-
-
-
 import pandas as pd
 import numpy as np
 import time

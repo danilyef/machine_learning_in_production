@@ -1,64 +1,69 @@
-import datasets
-import pandas as pd
-import torch
-from torch.utils.data import IterableDataset, DataLoader
+
+from datasets import load_dataset
+import lancedb
+from lancedb.pydantic import LanceModel, Vector
+from lancedb.embeddings import get_registry
+
+from datasets import load_dataset
+from sentence_transformers import SentenceTransformer
+import typer
 
 
-# Huggingface example
-def create_data(num_rows: int = 1000):
-    return {
-        'id': range(1, num_rows + 1),
-        'name': [f'Person_{i}' for i in range(1, num_rows + 1)],
-        'age': [20 + i % 60 for i in range(num_rows)],
-        'score': [round(50 + 50 * torch.rand(1).item(), 2) for _ in range(num_rows)]
-    }
+app = typer.Typer()
 
-def create_iterable_dataset(data):
-    dataset = datasets.Dataset.from_pandas(pd.DataFrame(data))
-    return dataset.to_iterable_dataset()
+@app.command()
+def create_index():
+    dataset = load_dataset("Prarabdha/Rick_and_Morty_Transcript")
+    dataset = dataset.remove_columns(['Unnamed: 0', 'episode no.'])
 
+    # Select 100 records randomly
+    sample_size = 2000
+    dataset = dataset['train'].shuffle(seed=42).select(range(sample_size))
 
-def main_iterable_dataset():
-    # Create a dataset with 1000 rows
-    data = create_data(num_rows=1000)
-    # Convert the data to an iterable dataset
-    dataset = create_iterable_dataset(data)
-    # Iterate through the dataset and print the first 10 records
-    for i, record in enumerate(dataset):
-        print(f"Record {i + 1}:", record)
-        if i == 9:
-            break  # Stop after printing 10 records
+    # Create vector embeddings
+    docs = [d['dialouge'] for d in dataset]
 
+    model = SentenceTransformer('BAAI/bge-small-en-v1.5')
+    embeddings = model.encode(docs, show_progress_bar=True)
 
+    # create data for index
+    data = [
+        {
+            "id": idx,
+            "vector": embeddings[idx],
+            "speaker": dataset[idx]['speaker'],
+            "dialouge": dataset[idx]["dialouge"],
+        }
+        for idx in range(len(dataset))
+    ]
 
-class StreamingDataset(IterableDataset):
-    def __init__(self, data):
-        self.data = data
+    # Create index
+    db = lancedb.connect("/tmp/db")
+    table = db.create_table('Index', data=data, mode="overwrite")
+    table.create_index()
 
-    def __iter__(self):
-        for i in range(len(self.data['id'])):
-            yield {key: self.data[key][i] for key in self.data}
+    typer.echo("Index created successfully!")
 
+@app.command()
+def search_index(query: str, top_n: int = 2):
+    db = lancedb.connect("/tmp/db")
+    table = db.open_table('Index')
+    
+    model = SentenceTransformer('BAAI/bge-small-en-v1.5')
+    query_embedding = model.encode(query)
 
-def main_streaming_dataset():
-    # Create the data
-    data = create_data()
+    results = table.search(query_embedding).limit(top_n).to_list()
+    typer.echo('Results:')
+    
+    
 
-    # Create the streaming dataset
-    dataset = StreamingDataset(data)
+    for result in results:
 
-    # Create a DataLoader for batching
-    dataloader = DataLoader(dataset, batch_size=32)
-
-    # Example
-    for i, batch in enumerate(dataloader):
-        print(batch)
-        print('-' * 50) 
-        if i == 1: 
-            break
-
+        typer.echo(result["speaker"])
+        typer.echo(result["dialouge"])
+        typer.echo()
 
 if __name__ == "__main__":
-    main_iterable_dataset()
-    print('-' * 50)
-    main_streaming_dataset()
+    app()
+
+
