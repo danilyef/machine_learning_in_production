@@ -1,20 +1,18 @@
-# Homework 2
+# Homework 2: Infrastructure setup
 
 This repository contains tasks related to Docker, Kubernetes, and GitHub Actions.
 
-## Structure
 
-The repository is organized into the following directories:
+## Tasks:
 
-- `homework_2/task1/`: Contains Docker-related tasks.
-- `homework_2/task2/`: Contains Kubernetes-related tasks.
-- `.github/workflows/`: Contains the GitHub Actions workflows.
+- PR1: Write a dummy Dockerfile with a simple server and push it to your docker hub or github docker registry.
+- PR2: Write CI/CD pipeline with github action that does this for each PR.
+- PR3: Write YAML definition for Pod, Deployment, Service, and Job with your Docker image, Use minikube/kind for testing it.Install k9s tool.
 
 ### Task 1: Docker
 
-#### PR1: `homework_2/task1`
-
-This task involves working with Docker. The following scripts are available:
+- folder: `homework_2/pr1`
+- This task involves working with Docker. The following scripts are available:
 
 1. **First Docker Container:**
    - **Purpose**: Builds and runs a task that prints output.
@@ -35,15 +33,13 @@ This task involves working with Docker. The following scripts are available:
 
 ### Task 2: GitHub Actions
 
-#### PR2: `.github/workflows`
-
-This directory contains GitHub Actions workflows used for CI/CD automation.
+- folder: `.github/workflows`
+- This directory contains GitHub Actions workflows used for CI/CD automation.
 
 ### Task 3: Kubernetes
 
-#### PR3: `homework_2/task2`
-
-This task involves working with Kubernetes resources.
+- folder: `homework_2/pr3`
+- This task involves working with Kubernetes resources.
 
 1. **Pod**:
    - **Command**: 
