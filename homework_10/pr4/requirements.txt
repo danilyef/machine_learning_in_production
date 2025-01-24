@@ -1,0 +1,5 @@
+requests
+starlette
+transformers 
+ray[serve]
+torch

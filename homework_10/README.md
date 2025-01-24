@@ -7,7 +7,6 @@
 - PR3: Write code for Triton Inference Server deployment.
 - PR4: Write code for Ray deployment.
 - PR5: Write code for LLM deployment using TGI, vLLM, and LoRAX.
-- PR6: Write code for LLM deployment with ModalLab.
 
 
 ### PR3: Triton Inference Server deployment
@@ -31,4 +30,69 @@ docker run --gpus all --rm --shm-size=1G -p 8000:8000 -p 8001:8001 -p 8002:8002 
 **Step 4: Query the Server**
 ```bash
 curl -X POST localhost:8000/v2/models/distilbert_sst2/infer -d '{"inputs": [{"name":"text_input","datatype":"BYTES","shape":[1],"data":["I am going"]}]}'
+```
+
+
+### PR4: Ray deployment
+
+**Step 1: Run Ray server**
+```bash
+serve run main:sentiment_analysis_app
+```
+
+**Step 2: Query the server**
+```bash
+python client.py
+```
+
+
+### PR5: vLLM and TGI
+
+#### TGI
+
+**Step 1: Create script and privileges:**
+
+```bash
+chmod +x run.sh
+```
+
+**Step 2: Start script:**
+
+```bash
+./tgi_inference.sh
+```
+
+**Step 3: Test script:**
+
+```bash
+curl 127.0.0.1:8080/generate_stream \
+    -X POST \
+    -d '{"inputs":"What is Deep Learning?","parameters":{"max_new_tokens":20}}' \
+    -H 'Content-Type: application/json'
+```
+
+
+#### vLLM
+
+**Step 1: build Dockerfile**
+```bash
+docker build -t zephyr-vllm .
+```
+
+**Step 2: Run dockerfile**
+```bash
+docker run --gpus all -p 8000:8000 zephyr-vllm
+```
+
+**Step 3:   Test**
+
+```bash
+curl http://localhost:8000/v1/completions \
+    -H "Content-Type: application/json" \
+    -d '{
+        "model": "Qwen/Qwen2.5-1.5B-Instruct",
+        "prompt": "San Francisco is a",
+        "max_tokens": 7,
+        "temperature": 0
+    }'
 ```
