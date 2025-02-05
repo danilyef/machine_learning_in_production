@@ -2,14 +2,12 @@
 
 ## Tasks:
 
-- PR1: Write code for Seldon API deployment of your model.
-- PR2: Write code for KServe API integration with your model.
-- PR3: Write code for Triton Inference Server deployment.
-- PR4: Write code for Ray deployment.
-- PR5: Write code for LLM deployment using TGI, vLLM, and LoRAX.
+- PR1: Write code for Triton Inference Server deployment.
+- PR2: Write code for Ray deployment.
+- PR3: Write code for LLM deployment using TGI, vLLM, and LoRAX.
 
 
-### PR3: Triton Inference Server deployment
+### PR1: Triton Inference Server deployment
 
 **Step 1: Create a Model Repository**
 ```bash
@@ -17,36 +15,89 @@ mkdir -p model_repository
 cp -r distilbert_ss/ model_repository/
 ```
 
-**Step 2: build image container**
+**Step 2: Download Model and save in model_repository folder**
+
+
+**Step 3: Save yaml file for deployment and service in current folder**
+
+**Step 4: Make a mount, such that minikbue has access to the folder**
 ```bash
-docker build -t triton_transformer_server .
+minikube mount $PWD:/mnt/data
 ```
 
-**Step 3: run docker image**
+**Step 5: This command fetches the necessary environment variables to configure your shell to use the Docker daemon inside the Minikube VM.**
+
 ```bash
-docker run --gpus all --rm --shm-size=1G -p 8000:8000 -p 8001:8001 -p 8002:8002 -v $(pwd)/model_repository:/models triton_transformer_server tritonserver --model-repository=/models
+eval $(minikube -p minikube docker-env)
 ```
 
-**Step 4: Query the Server**
+**Step 6: Build image container**
 ```bash
-curl -X POST localhost:8000/v2/models/distilbert_sst2/infer -d '{"inputs": [{"name":"text_input","datatype":"BYTES","shape":[1],"data":["I am going"]}]}'
+docker build -t custom_triton .
+```
+
+**Step 7: Apply deployment and service**
+```bash
+ kubectl apply -f deployment_service.yaml
+```
+
+**Step 8: Expose ports**
+```bash
+kubectl get svc triton-inference-service
+```
+
+**Step 9: Internal ip of the node**
+
+```bash
+kubectl get nodes -o wide
+```
+
+**Step 10: check existence of the model**
+
+```bash
+curl http://192.168.49.2:<port>/v2/models/<model_name>
+```
+
+**Step 11: test request**
+
+```bash
+curl -X POST 192.168.49.2:<port>/v2/models/<model_name>/infer -d '{"inputs": [{"name":"text_input","datatype":"BYTES","shape":[1],"data":["I am going"]}]}'
 ```
 
 
-### PR4: Ray deployment
+### PR2: Ray deployment
 
-**Step 1: Run Ray server**
+**Step 1: Start minikube**
 ```bash
-serve run main:sentiment_analysis_app
+minikube start --cpus=10 --memory=24576
 ```
 
-**Step 2: Query the server**
+**Step 2: Install Kuberay**
 ```bash
-python client.py
+helm repo add kuberay https://ray-project.github.io/kuberay-helm/
+helm repo update
+helm install kuberay-operator kuberay/kuberay-operator --version 1.2.2
+
+kubectl get pods
+```
+
+**Step 3: Apply rayservice file**
+```bash
+kubectl apply -f rayservice.yaml
+```
+
+**Step 4: Get port**
+```bash
+kubectl port-forward service/rayservice-sample-serve-svc 8000
 ```
 
 
-### PR5: vLLM and TGI
+**Step 5: Test request**
+```bash
+curl -X POST -H "Content-Type: application/json" localhost:8000/text_sentiment -d '{"text": "I am going to the store"}'
+```
+
+### PR3: vLLM and TGI
 
 #### TGI
 
@@ -96,3 +147,31 @@ curl http://localhost:8000/v1/completions \
         "temperature": 0
     }'
 ```
+
+
+#### vLLM on Kubernetes
+Guide taken and tested from: https://docs.vllm.ai/en/v0.6.4/serving/deploying_with_k8s.html
+
+**Step 1: Create a PVC , Secret and Deployment for vLLM**
+```bash
+kubectl -f pvc.yaml
+```
+
+**Step 2: Create Deployment and service**
+```bash
+kubectl apply -f deployment.yaml
+kubectl apply -f service.yaml
+```
+
+**Step 3: Test**
+```bash
+curl http://localhost:8000/v1/completions \
+    -H "Content-Type: application/json" \
+    -d '{
+        "model": "Qwen/Qwen2.5-1.5B-Instruct",
+        "prompt": "San Francisco is a",
+        "max_tokens": 7,
+        "temperature": 0
+    }'
+```
+

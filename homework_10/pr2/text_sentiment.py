@@ -1,6 +1,3 @@
-# File name: main.py
-
-import requests
 from starlette.requests import Request
 from typing import Dict
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
@@ -9,7 +6,7 @@ import torch
 from torch.nn.functional import softmax
 
 
-@serve.deployment(num_replicas=2, ray_actor_options={"num_cpus": 0.2, "num_gpus": 0})
+@serve.deployment
 class SentimentAnalysisDeployment:
     def __init__(self):
         self.tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased-finetuned-sst-2-english")

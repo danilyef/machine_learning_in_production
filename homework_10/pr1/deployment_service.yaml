@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: triton-inference-deployment
+  labels:
+    app: triton
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: triton
+  template:
+    metadata:
+      labels:
+        app: triton
+    spec:
+      containers:
+      - name: triton
+        image: "custom_triton:latest"
+        imagePullPolicy: Never
+        args: ["tritonserver","--model-repository=/models"]
+        ports:
+        - containerPort: 8000
+        - containerPort: 8001
+        - containerPort: 8002
+        volumeMounts:
+        - name: models
+          mountPath: /models
+
+      volumes:
+      - name: models
+        hostPath:
+          path: /mnt/data/model_repository
+          type: Directory
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: triton-inference-service
+spec:
+  selector:
+    app: triton
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+      name: http
+    - protocol: TCP
+      port: 8001
+      targetPort: 8001
+      name: grpc
+    - protocol: TCP
+      port: 8002
+      targetPort: 8002
+      name: metrics
+  type: NodePort
