@@ -1,0 +1,27 @@
+
+name: "distilbert_sst2"
+backend: "python"
+max_batch_size: 16
+input [
+  {
+    name: "text_input"
+    data_type: TYPE_STRING
+    dims: [-1]
+  }
+]
+
+output [
+  {
+    name: "label_output"
+    data_type: TYPE_INT32
+    dims: [-1]
+  }
+]
+
+
+instance_group [
+  {
+    kind: KIND_GPU  # Use KIND_CPU for CPU inference
+    count: 1
+  }
+]

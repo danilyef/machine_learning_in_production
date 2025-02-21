@@ -1,0 +1,55 @@
+name: "ensemble_model"
+platform: "ensemble"
+max_batch_size: 16
+
+input [
+  {
+    name: "german_text_input"
+    data_type: TYPE_STRING
+    dims: [-1]
+  }
+]
+
+output [
+  {
+    name: "label_output"
+    data_type: TYPE_INT32
+    dims: [-1]
+  }
+]
+
+
+
+ensemble_scheduling {
+  step [
+    {
+      model_name: "translation_model"
+      model_version: -1
+      input_map {
+        key: "german_text_input"
+        value: "german_text_input"
+      }
+      output_map {
+        key: "text_output"
+        value: "translated_text"
+      }
+    },
+    {
+      model_name: "distilbert_sst2"
+      model_version: -1
+      input_map {
+        key: "text_input"
+        value: "translated_text"
+      }
+      output_map {
+        key: "label_output"
+        value: "label_output"
+      }
+    }
+  ]
+}
+
+
+
+
+
