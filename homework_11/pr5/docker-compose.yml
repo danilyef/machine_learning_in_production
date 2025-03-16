@@ -1,0 +1,64 @@
+version: '2'
+services:
+  zookeeper:
+    image: 'bitnami/zookeeper:latest'
+    hostname: zookeeper
+    restart: unless-stopped
+    ports:
+      - '2181:2181'
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+
+      
+  
+  kafka-1:
+    image: bitnami/kafka:latest
+    container_name: kafka-1
+    ports:
+      - "9094:9094"
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LISTENERS=INTERNAL://0.0.0.0:9092,OUTSIDE://0.0.0.0:9094
+      - KAFKA_ADVERTISED_LISTENERS=INTERNAL://kafka:9092,OUTSIDE://localhost:9094
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,OUTSIDE:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+    depends_on:
+      - zookeeper
+
+  kafka-2:
+    image: bitnami/kafka:latest
+    container_name: kafka-2
+    ports:
+      - "9095:9095"
+    environment:
+      - KAFKA_BROKER_ID=2
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LISTENERS=INTERNAL://0.0.0.0:9093,OUTSIDE://0.0.0.0:9095
+      - KAFKA_ADVERTISED_LISTENERS=INTERNAL://kafka:9093,OUTSIDE://localhost:9095
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,OUTSIDE:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+    depends_on:
+      - zookeeper
+
+
+
+  fastapi-server:
+    build: ./server
+    container_name: fastapi-server
+    ports:
+      - "8000:8000"
+    depends_on:
+      - kafka-1
+      - kafka-2
+
+  worker:
+    build: ./worker
+    container_name: sentiment-worker
+    depends_on:
+      - kafka-1
+      - kafka-2

@@ -6,6 +6,7 @@
 - PR2: Write code for an ensemble of several models (you might use Triton, Seldon, or KServe for this).
 - PR3: Write code for gRPC inference for your model server (you might use Triton, Seldon, or KServe for this).
 - PR4: Write code for benchmarking your model server: report latency, RPS, etc.
+- PR5: Write code for async inference for your models with the help of queue (Kafka, or any other queue).
 
 
 ### PR1: Dynamic request batching for your model
@@ -88,6 +89,17 @@ locust -f locust_http.py --headless -u 10 -r 2 --run-time 1m  --host=http://loca
 -u 10 → Simulates 10 concurrent users.
 -r 2 → Spawns 2 users per second.
 --run-time 1m → Runs for 1 minute.
+
+
+
+### PR5: Async Kafka Inference: 
+
+**Step 1: Build docker images**
+```bash 
+docker-compose up --build
+```
+
+
 
 
 
